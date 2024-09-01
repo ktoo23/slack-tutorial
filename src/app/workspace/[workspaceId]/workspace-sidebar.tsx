@@ -1,8 +1,19 @@
 import { useCurrentMember } from '@/features/members/api/use-current-member';
 import { useGetWorkSpace } from '@/features/workspaces/api/use-get-workspace';
 import { useWorkspaceId } from '@/hooks/use-workspace-id';
-import { AlertTriangle, Loader } from 'lucide-react';
+import {
+  AlertTriangle,
+  HashIcon,
+  Loader,
+  MessageSquareText,
+  SendHorizontal,
+} from 'lucide-react';
 import { WorkspaceHeader } from './workspace-header';
+import { SidebarItem } from './sidebar-item';
+import { useGetChannels } from '@/features/channels/api/use-get-channels';
+import { WorkspaceSection } from './workspace-section';
+import { useGetMembers } from '@/features/members/api/use-get-member';
+import { UserItem } from './user-item';
 
 export const WorksapceSidebar = () => {
   const workspaceId = useWorkspaceId();
@@ -11,6 +22,14 @@ export const WorksapceSidebar = () => {
   });
   const { data: workspace, isLoading: workspaceLoading } = useGetWorkSpace({
     id: workspaceId,
+  });
+
+  const { data: channels, isLoading: channelsLoading } = useGetChannels({
+    workspaceId,
+  });
+
+  const { data: members, isLoading: membersLoading } = useGetMembers({
+    workspaceId,
   });
 
   if (workspaceLoading || memberLoading) {
@@ -35,6 +54,39 @@ export const WorksapceSidebar = () => {
         workspace={workspace}
         isAdmin={member.role === 'admin'}
       />
+      <div className="flex flex-col px-2 mt-3">
+        <SidebarItem
+          label="Threads"
+          icon={MessageSquareText}
+          id="threads"
+          variant="active"
+        />
+        <SidebarItem label="Drafts & Sent" icon={SendHorizontal} id="drafts" />
+      </div>
+      <WorkspaceSection label="Channels" hint="New channel" onNew={() => {}}>
+        {channels?.map((item) => (
+          <SidebarItem
+            key={item._id}
+            icon={HashIcon}
+            label={item.name}
+            id={item._id}
+          />
+        ))}
+      </WorkspaceSection>
+      <WorkspaceSection
+        label="Direct messages"
+        hint="New direct message"
+        onNew={() => {}}
+      >
+        {members?.map((item) => (
+          <UserItem
+            key={item._id}
+            id={item._id}
+            label={item.user.name}
+            image={item.user.image}
+          />
+        ))}
+      </WorkspaceSection>
     </div>
   );
 };
